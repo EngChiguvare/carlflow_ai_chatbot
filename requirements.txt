@@ -1,0 +1,5 @@
+django>=4.2
+twilio
+requests
+python-dotenv
+gunicorn
