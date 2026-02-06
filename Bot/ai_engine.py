@@ -1,9 +1,9 @@
 import requests
 import os
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
+DEEPSEEK_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 SYSTEM_PROMPT = """
 You are Carlflow AI Assistant, the official virtual assistant for Carlflow_AI.
@@ -42,18 +42,18 @@ def get_ai_reply(message: str) -> str:
     if not message:
         return "👋 Hi! How can Carlflow_AI help you today?"
 
-    if not DEEPSEEK_API_KEY:
+    if not OPENROUTER_API_KEY:
         return "⚠️ AI service is not configured."
 
     try:
         response = requests.post(
             DEEPSEEK_URL,
             headers={
-                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
             },
             json={
-                "model": "deepseek-chat",
+                "model": "deepseek/deepseek-r1-0528:free",
                 "messages": [
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": message},
