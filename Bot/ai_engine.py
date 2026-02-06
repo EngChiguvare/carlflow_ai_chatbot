@@ -1,7 +1,11 @@
-import os
 import requests
+import os
 
-API_KEY = os.getenv('DEEPSEEK_API_KEY')
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+
+DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
+
+
 
 SYSTEM_PROMPT = """
 You are Carlflow AI Assistant, the official virtual assistant for Carlflow_AI.
@@ -36,21 +40,54 @@ Rules:
 - Always guide serious users to contact Carlflow_AI
 
 """
-def get_ai_reply(message: str) -> str:
-    response = requests.post(
-        'https://api.deepseek.com/v1/chat/completions',
-        headers={
-            'Authorization': f'Bearer {API_KEY}',
-            'Content-Type': 'application/json'
-        },
-        json={
-            'model': 'deepseek-chat',
-            'messages': [
-                {'role': 'system', 'content': SYSTEM_PROMPT},
-                {'role': 'user', 'content': message}
-            ]
-        },
-        timeout=20
-    )
 
-    return response.json()['choices'][0]['message']['content']
+def get_ai_reply(message: str) -> str:
+    """
+    Safe DeepSeek AI call.
+    Will NEVER crash the WhatsApp webhook.
+    """
+
+    if not DEEPSEEK_API_KEY:
+        return "⚠️ Carlflow_AI is missing its AI configuration."
+
+    try:
+        response = requests.post(
+            DEEPSEEK_URL,
+            headers={
+                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": SYSTEM_PROMPT
+                    },
+                    {
+                        "role": "user",
+                        "content": message
+                    }
+                ],
+            },
+            timeout=20,
+        )
+
+        data = response.json()
+
+        # ✅ SAFE parsing (no KeyError ever again)
+        if isinstance(data, dict):
+            if "choices" in data and len(data["choices"]) > 0:
+                return data["choices"][0]["message"]["content"]
+
+            if "message" in data:
+                return f"⚠️ AI Notice: {data['message']}"
+
+            if "error" in data:
+                return "⚠️ Carlflow_AI AI service is temporarily unavailable."
+
+        return "🤖 Carlflow_AI is online. How can I help you today?"
+
+    except Exception as e:
+        print("🔥 AI ENGINE ERROR 🔥", str(e))
+        return "⚠️ Carlflow_AI is temporarily unavailable. Please try again shortly."
