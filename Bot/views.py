@@ -9,6 +9,10 @@ def whatsapp_webhook(request):
     try:
         phone = request.POST.get('From')
         body = request.POST.get('Body')
+        if not body:
+            resp = MessagingResponse()
+            resp.message("👋 Carlflow_AI is online. How can I help you today?")
+            return HttpResponse(str(resp))
 
         reply = process_message(phone, body)
 
